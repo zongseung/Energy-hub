@@ -1,0 +1,38 @@
+# Energy Hub — 통합 데이터 인프라
+# 사용: docker compose --env-file .env.energy-hub up -d
+#
+# 기존 컨테이너와 독립:
+#   demand-postgres (5433) — 그대로 유지
+#   pv-data-postgres (5436) — 그대로 유지
+#   energy-hub-db (5437) — 이 파일로 생성
+
+services:
+  energy-hub-db:
+    image: postgis/postgis:16-3.4
+    container_name: energy-hub-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5437:5432"
+    volumes:
+      - /mnt/iscsi-renewable/postgres/energy-hub-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - energy-hub-net
+      - pv-pipeline-network          # FDW: pv-data-postgres 직접 접근
+      - weather-pipeline_prefect-new  # FDW: demand-postgres 직접 접근
+
+networks:
+  energy-hub-net:
+    driver: bridge
+  pv-pipeline-network:
+    external: true
+  weather-pipeline_prefect-new:
+    external: true
