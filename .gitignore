@@ -1,0 +1,42 @@
+
+# Python cache / bytecode
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+
+# Virtual env
+.venv/
+venv/
+env/
+ENV/
+
+# Tooling caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# IDE / OS
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Node.js
+node_modules/
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Large legacy data (33GB)
+source_code/
+
+# Claude Code
+.claude/
+
+# Docker data
+docker-data/
