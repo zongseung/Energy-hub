@@ -1,0 +1,8 @@
+# Martin vector tile server configuration
+listen_addresses: '0.0.0.0:3000'
+
+postgres:
+  connection_string: postgresql://energy_user:energy_hub_secure_2026@energy-hub-db:5432/energy_hub
+  auto_publish:
+    tables:
+      from: public

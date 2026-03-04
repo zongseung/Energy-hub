@@ -1,0 +1,105 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #1e1e28 #0b0b0e;
+  }
+  ::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #0b0b0e;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #2a2a38;
+    border-radius: 2px;
+  }
+}
+
+@layer components {
+  /* Hyperbeat-style number */
+  .num {
+    @apply font-mono tabular-nums tracking-tight;
+  }
+
+  /* Hyperbeat card surface */
+  .hb-card {
+    @apply bg-hb-surface border border-hb-border;
+  }
+
+  /* Panel with header */
+  .hb-panel {
+    @apply bg-hb-panel border border-hb-border;
+  }
+
+  /* Uppercase label */
+  .hb-label {
+    @apply text-2xs font-medium uppercase tracking-wider text-text-label;
+  }
+
+  /* Green value */
+  .val-up {
+    @apply text-accent-green;
+  }
+
+  /* Red value */
+  .val-down {
+    @apply text-accent-red;
+  }
+
+  /* Status badges */
+  .badge-active {
+    @apply inline-flex items-center px-1.5 py-0.5 text-2xs font-medium rounded bg-accent-green/15 text-accent-green;
+  }
+  .badge-stopped {
+    @apply inline-flex items-center px-1.5 py-0.5 text-2xs font-medium rounded bg-text-muted/15 text-text-muted;
+  }
+  .badge-retired {
+    @apply inline-flex items-center px-1.5 py-0.5 text-2xs font-medium rounded bg-accent-red/15 text-accent-red;
+  }
+
+  /* Table row hover */
+  .hb-row {
+    @apply flex items-center px-2 py-0.5 hover:bg-hb-border/30 transition-colors cursor-pointer;
+  }
+
+  /* Orderbook-style bar — use with inline --bar-pct variable */
+  .ob-bar-green {
+    background: linear-gradient(to left,
+      rgba(14, 203, 129, 0.18) 0%,
+      rgba(14, 203, 129, 0.18) var(--bar-pct, 0%),
+      transparent var(--bar-pct, 0%));
+  }
+  .ob-bar-red {
+    background: linear-gradient(to left,
+      rgba(246, 70, 93, 0.18) 0%,
+      rgba(246, 70, 93, 0.18) var(--bar-pct, 0%),
+      transparent var(--bar-pct, 0%));
+  }
+}
+
+/* MapLibre 인프라 팝업 (dark theme) */
+.infra-popup .maplibregl-popup-content {
+  background: #16161d;
+  border: 1px solid #1e1e28;
+  border-radius: 6px;
+  padding: 10px 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+}
+.infra-popup .maplibregl-popup-tip {
+  border-top-color: #16161d;
+  border-bottom-color: #16161d;
+}
+.infra-popup .maplibregl-popup-close-button {
+  color: #888;
+  font-size: 16px;
+  padding: 2px 6px;
+}
+.infra-popup .maplibregl-popup-close-button:hover {
+  color: #e0e0e0;
+  background: transparent;
+}

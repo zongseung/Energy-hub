@@ -1,0 +1,157 @@
+services:
+  # ── PostgreSQL 16 + PostGIS 3.4 ─────────────────────────
+  energy-hub-db:
+    image: postgis/postgis:16-3.4
+    container_name: energy-hub-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5437:5432"
+    volumes:
+      - /mnt/iscsi-renewable/postgres/energy-hub-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - energy-hub-net
+      - external-demand
+      - external-pvdata
+
+  # ── ETL 초기 데이터 적재 (one-shot) ─────────────────────
+  etl:
+    build:
+      context: ./backend
+    container_name: energy-hub-etl
+    depends_on:
+      energy-hub-db:
+        condition: service_healthy
+    environment:
+      DB_HOST: energy-hub-db
+      DB_PORT: "5432"
+      DB_NAME: ${POSTGRES_DB}
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DATA_ROOT: /data
+      DEMAND_DB_HOST: ${DEMAND_DB_HOST:-demand-postgres}
+      DEMAND_DB_PORT: ${DEMAND_DB_PORT:-5432}
+      DEMAND_DB_NAME: ${DEMAND_DB_NAME:-demand}
+      DEMAND_DB_USER: ${DEMAND_DB_USER:-demand}
+      DEMAND_DB_PASSWORD: ${DEMAND_DB_PASSWORD:-demand}
+    volumes:
+      - ../etl:/etl:ro
+      - ../source_code/src/data/processed:/data/processed:ro
+      - ../source_code/src/data/openinframap/by_sido:/data/openinframap/by_sido:ro
+      - ../source_code/src/data/boundaries:/data/boundaries:ro
+      - ../source_code/src/data/recloud:/data/recloud:ro
+      - ../source_code/src/data/landcover:/data/landcover:ro
+    command: ["python", "/etl/load_all.py"]
+    restart: "no"
+    networks:
+      - energy-hub-net
+      - external-demand
+      - external-pvdata
+
+  # ── Redis 캐시 ─────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: energy-hub-redis
+    restart: unless-stopped
+    command: ["redis-server", "--maxmemory", "256mb", "--maxmemory-policy", "allkeys-lru"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+    networks:
+      - energy-hub-net
+
+  # ── Martin 벡터타일 서버 ───────────────────────────────
+  martin:
+    image: maplibre/martin:latest
+    container_name: energy-hub-martin
+    restart: unless-stopped
+    depends_on:
+      energy-hub-db:
+        condition: service_healthy
+    volumes:
+      - ./martin/martin.yaml:/config/martin.yaml:ro
+    command: ["--config", "/config/martin.yaml"]
+    networks:
+      - energy-hub-net
+
+  # ── FastAPI 백엔드 ──────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+    container_name: energy-hub-backend
+    restart: unless-stopped
+    depends_on:
+      etl:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      BOUNDARIES_PATH: ${BOUNDARIES_PATH}
+      REDIS_URL: redis://redis:6379/0
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend/app:/app/app
+      - ../source_code/src/data/boundaries:/data/boundaries:ro
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    networks:
+      - energy-hub-net
+
+  # ── React Frontend (Vite dev server) ───────────────────
+  frontend:
+    build:
+      context: ./frontend
+    container_name: energy-hub-frontend
+    restart: unless-stopped
+    environment:
+      VITE_API_TARGET: http://energy-hub-backend:8000
+      VITE_MAPTILER_KEY: ${VITE_MAPTILER_KEY:-QDyL8SVpZi4TNH5AykBi}
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/index.html:/app/index.html
+    command: ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
+    networks:
+      - energy-hub-net
+
+  # ── Nginx 리버스 프록시 ─────────────────────────────────
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: energy-hub-nginx
+    restart: unless-stopped
+    depends_on:
+      - backend
+      - frontend
+      - martin
+    ports:
+      - "8088:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - energy-hub-net
+
+networks:
+  energy-hub-net:
+    driver: bridge
+  # 기존 demand-postgres 네트워크 (FDW + 관측소 데이터 접근)
+  external-demand:
+    external: true
+    name: weather-pipeline_prefect-new
+  # 기존 pv-data-postgres 네트워크 (FDW 접근)
+  external-pvdata:
+    external: true
+    name: pv-pipeline-network
+
+volumes: {}
