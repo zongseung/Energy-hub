@@ -40,3 +40,5 @@ source_code/
 
 # Docker data
 docker-data/
+
+/plan_docs
