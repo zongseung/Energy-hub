@@ -14,6 +14,7 @@ interface MapState {
     operator?: string | null;
     sourceType?: string | null;
   } | null;
+  selectedStationName: string | null;
   highlightedId: number | null;
   variable: Variable;
   aggMode: AggMode;
@@ -29,6 +30,7 @@ interface MapState {
     operator?: string | null;
     sourceType?: string | null;
   }) => void;
+  selectStation: (id: number, name: string) => void;
   clearSelection: () => void;
   setHighlighted: (id: number | null) => void;
 }
@@ -39,6 +41,7 @@ export const useMapStore = create<MapState>((set) => ({
   selectedId: null,
   selectedType: null,
   selectedGenPlant: null,
+  selectedStationName: null,
   highlightedId: null,
   variable: "pv_capacity",
   aggMode: "current",
@@ -47,9 +50,11 @@ export const useMapStore = create<MapState>((set) => ({
   setBbox: (b) => set({ bbox: b }),
   setVariable: (v) => set({ variable: v }),
   setAggMode: (m) => set({ aggMode: m }),
-  selectSite: (id, type) => set({ selectedId: id, selectedType: type, selectedGenPlant: null }),
+  selectSite: (id, type) => set({ selectedId: id, selectedType: type, selectedGenPlant: null, selectedStationName: null }),
   selectGenPlant: (source, plantName, extra) =>
-    set({ selectedId: null, selectedType: "generation", selectedGenPlant: { source, plantName, ...extra } }),
-  clearSelection: () => set({ selectedId: null, selectedType: null, selectedGenPlant: null }),
+    set({ selectedId: null, selectedType: "generation", selectedGenPlant: { source, plantName, ...extra }, selectedStationName: null }),
+  selectStation: (id, name) =>
+    set({ selectedId: id, selectedType: "station", selectedGenPlant: null, selectedStationName: name }),
+  clearSelection: () => set({ selectedId: null, selectedType: null, selectedGenPlant: null, selectedStationName: null }),
   setHighlighted: (id) => set({ highlightedId: id }),
 }));

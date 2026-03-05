@@ -127,6 +127,14 @@ export type Variable =
 
 export type AggMode = "current" | "daily_sum" | "daily_avg";
 
+export interface WeatherTimeseries {
+  station_name: string;
+  variable: string;
+  hours: number;
+  count: number;
+  data: TimeseriesPoint[];
+}
+
 export interface GenerationPlant {
   id: number;
   plant_name: string;

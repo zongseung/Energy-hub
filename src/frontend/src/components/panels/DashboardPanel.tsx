@@ -1,4 +1,6 @@
 import { usePolling } from "../../hooks/usePolling";
+import { useMapStore } from "../../stores/mapStore";
+import { useUiStore } from "../../stores/uiStore";
 import type { StatsSummary, WeatherStation, GenerationSummary } from "../../api/types";
 
 export function DashboardPanel() {
@@ -121,16 +123,22 @@ export function DashboardPanel() {
       {/* Weather stations — Orderbook list style */}
       {weather && weather.stations.length > 0 && (
         <div className="px-3 py-2">
-          <div className="hb-label mb-2">WEATHER STATIONS ({weather.count})</div>
+          <div className="hb-label mb-2">DISTRICT HEATING ({weather.count})</div>
           <div className="flex items-center text-2xs font-mono px-1 py-0.5 text-text-label uppercase tracking-wider">
-            <span className="flex-1">STATION</span>
+            <span className="flex-1">지사</span>
             <span className="w-14 text-right">TEMP</span>
             <span className="w-14 text-right">HUMID</span>
             <span className="w-14 text-right">WIND</span>
           </div>
-          {weather.stations.slice(0, 10).map((s) => (
+          {weather.stations.map((s) => (
             <div key={s.id} className="hb-row text-2xs font-mono">
-              <span className="flex-1 text-text-secondary truncate">{s.name}</span>
+              <span
+                className="flex-1 text-accent-cyan truncate cursor-pointer hover:underline"
+                onClick={() => {
+                  useMapStore.getState().selectStation(s.id, s.name);
+                  useUiStore.getState().setPanelMode("detail");
+                }}
+              >{s.name}지사</span>
               <span className="w-14 text-right num text-text-primary">
                 {s.temperature != null ? `${s.temperature.toFixed(1)}°` : "—"}
               </span>

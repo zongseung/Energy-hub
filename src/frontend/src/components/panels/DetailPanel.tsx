@@ -1,13 +1,20 @@
 import { useEffect, useState, lazy, Suspense } from "react";
 import { useMapStore } from "../../stores/mapStore";
 import { fetchSiteDetail } from "../../api/siteApi";
-import type { SiteDetail } from "../../api/types";
+import { fetchWeatherStations } from "../../api/statsApi";
+import type { SiteDetail, WeatherStation } from "../../api/types";
 
 const MiniTimeseries = lazy(() => import("./MiniTimeseries"));
 const GenerationChart = lazy(() => import("./GenerationChart"));
+const WeatherStationChart = lazy(() => import("./WeatherStationChart"));
 
 export function DetailPanel() {
-  const { selectedId, selectedType, selectedGenPlant } = useMapStore();
+  const { selectedId, selectedType, selectedGenPlant, selectedStationName } = useMapStore();
+
+  // Weather station detail
+  if (selectedType === "station" && selectedStationName) {
+    return <WeatherStationDetailView stationName={selectedStationName} />;
+  }
 
   // Generation plant detail
   if (selectedType === "generation" && selectedGenPlant) {
@@ -176,6 +183,60 @@ function PvDetailView({ selectedId }: { selectedId: number | null }) {
         <div className="hb-label mb-1">TIMESERIES (24H)</div>
         <Suspense fallback={<div className="h-[140px] bg-hb-panel rounded animate-pulse" />}>
           <MiniTimeseries siteId={site.id} variable="temperature" />
+        </Suspense>
+      </div>
+    </div>
+  );
+}
+
+function WeatherStationDetailView({ stationName }: { stationName: string }) {
+  const [station, setStation] = useState<WeatherStation | null>(null);
+
+  useEffect(() => {
+    fetchWeatherStations()
+      .then((res) => {
+        const found = res.stations.find((s) => s.name === stationName);
+        setStation(found ?? null);
+      })
+      .catch(() => setStation(null));
+  }, [stationName]);
+
+  return (
+    <div className="flex flex-col">
+      {/* Header */}
+      <div className="px-3 py-2 border-b border-hb-border">
+        <div className="flex items-center gap-2 mb-1">
+          <span className="text-xs font-semibold text-accent-cyan truncate">{stationName}지사</span>
+          <span className="badge-active">난방지사</span>
+        </div>
+        <div className="text-2xs text-text-muted font-mono">
+          한국지역난방공사 {stationName}지사
+          {station && ` · ${station.lat.toFixed(4)}, ${station.lng.toFixed(4)}`}
+        </div>
+      </div>
+
+      {/* Current values */}
+      <div className="px-3 py-2 border-b border-hb-border">
+        <div className="hb-label mb-1">CURRENT</div>
+        <PropRow label="기온" value={station?.temperature != null ? `${station.temperature.toFixed(1)} °C` : "—"} />
+        <PropRow label="습도" value={station?.humidity != null ? `${station.humidity.toFixed(0)} %` : "—"} />
+        <PropRow label="풍속" value={station?.wind_speed != null ? `${station.wind_speed.toFixed(1)} m/s` : "—"} />
+        <PropRow label="풍향" value={station?.wind_direction != null ? `${station.wind_direction.toFixed(0)}°` : "—"} />
+        {station?.address && (
+          <div className="text-2xs text-text-muted font-mono mt-1 px-2">{station.address}</div>
+        )}
+        {station?.latest_ts && (
+          <div className="text-2xs text-text-muted font-mono mt-1 px-2">
+            {new Date(station.latest_ts).toLocaleString("ko-KR")}
+          </div>
+        )}
+      </div>
+
+      {/* Timeseries chart */}
+      <div className="px-3 py-2">
+        <div className="hb-label mb-2">TIMESERIES</div>
+        <Suspense fallback={<div className="h-[160px] bg-hb-panel rounded animate-pulse" />}>
+          <WeatherStationChart stationName={stationName} />
         </Suspense>
       </div>
     </div>

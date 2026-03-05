@@ -9,6 +9,7 @@ const LAYER_ITEMS: { key: LayerKey; label: string; color: string }[] = [
   { key: "substation", label: "변전소", color: "bg-accent-amber" },
   { key: "powerline", label: "송전선", color: "bg-accent-purple" },
   { key: "powerplant", label: "발전소", color: "bg-accent-red" },
+  { key: "weatherStation", label: "난방지사", color: "bg-accent-cyan" },
   { key: "boundary", label: "경계", color: "bg-accent-cyan" },
   { key: "generation", label: "발전량", color: "bg-accent-amber" },
   { key: "landcover", label: "피복", color: "bg-accent-green" },

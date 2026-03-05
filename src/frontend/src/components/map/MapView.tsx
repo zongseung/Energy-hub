@@ -5,6 +5,7 @@ import { useUiStore } from "../../stores/uiStore";
 import { fetchClusters, fetchBoundaries } from "../../api/mapApi";
 import { useSearchStore } from "../../stores/searchStore";
 import { fetchGenerationPlants } from "../../api/generationApi";
+import { fetchWeatherStations } from "../../api/statsApi";
 import { registerPlantIcons, PLANT_COLORS, DEFAULT_PLANT_COLOR } from "../../utils/plantIcons";
 
 const MAPTILER_KEY = "QDyL8SVpZi4TNH5AykBi";
@@ -93,6 +94,7 @@ export function MapView() {
       safe("source:clusters", () => map.addSource("clusters", { type: "geojson", data: { type: "FeatureCollection", features: [] } }));
       safe("source:boundaries", () => map.addSource("boundaries", { type: "geojson", data: { type: "FeatureCollection", features: [] } }));
       safe("source:generation-plants", () => map.addSource("generation-plants", { type: "geojson", data: { type: "FeatureCollection", features: [] } }));
+      safe("source:weather-stations", () => map.addSource("weather-stations", { type: "geojson", data: { type: "FeatureCollection", features: [] } }));
 
       // ── Step 2: Layers (각각 독립 try/catch) ──
       safe("layer:landcover-fill", () => map.addLayer({
@@ -125,7 +127,25 @@ export function MapView() {
       }));
       safe("layer:powerlines", () => map.addLayer({
         id: "powerlines-layer", type: "line", source: "power-lines", "source-layer": "power_line",
-        paint: { "line-color": "#a855f7", "line-width": 2, "line-opacity": 0.7 },
+        paint: {
+          "line-color": ["match", ["get", "voltage"],
+            "765000", "#e53935",
+            "345000", "#ff9800",
+            "154000", "#a855f7",
+            "22900", "#78909c",
+            "15000", "#78909c",
+            "#5b5b6b"
+          ],
+          "line-width": ["match", ["get", "voltage"],
+            "765000", 4,
+            "345000", 3,
+            "154000", 2,
+            "22900", 1.5,
+            "15000", 1.5,
+            1
+          ],
+          "line-opacity": 0.75,
+        },
         layout: { visibility: "none" },
       }));
 
@@ -168,6 +188,18 @@ export function MapView() {
         id: "generation-labels", type: "symbol", source: "generation-plants", minzoom: 9,
         layout: { "text-field": ["get", "plant_name"], "text-size": 10, "text-offset": [0, 1.5], "text-anchor": "top", "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"] },
         paint: { "text-color": "#ff9800", "text-halo-color": "#0b0b0e", "text-halo-width": 1 },
+      }));
+
+      // Weather stations
+      safe("layer:weather-stations", () => map.addLayer({
+        id: "weather-station-layer", type: "circle", source: "weather-stations",
+        paint: { "circle-radius": ["interpolate", ["linear"], ["zoom"], 5, 5, 12, 9], "circle-color": "#00b8d9", "circle-stroke-width": 2, "circle-stroke-color": "#0b0b0e", "circle-opacity": 0.9 },
+        layout: { visibility: "none" },
+      }));
+      safe("layer:weather-station-labels", () => map.addLayer({
+        id: "weather-station-labels", type: "symbol", source: "weather-stations", minzoom: 8,
+        layout: { "text-field": ["concat", ["get", "name"], "지사"], "text-size": 10, "text-offset": [0, 1.5], "text-anchor": "top", "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"], visibility: "none" },
+        paint: { "text-color": "#00b8d9", "text-halo-color": "#0b0b0e", "text-halo-width": 1 },
       }));
 
       // ── Step 3: Click handlers ──
@@ -233,9 +265,27 @@ export function MapView() {
           f = queryClick(pt, ["powerlines-layer"]);
           if (f) { p = f.properties || {};
             var tl = p.power_type === "line" ? "\uC1A1\uC804\uC120" : p.power_type === "minor_line" ? "\uBC30\uC804\uC120" : p.power_type === "cable" ? "\uC9C0\uC911\uC120" : p.power_type || "\uC804\uC120";
+            var vc = p.voltage === "765000" ? "#e53935" : p.voltage === "345000" ? "#ff9800" : p.voltage === "154000" ? "#a855f7" : p.voltage === "22900" || p.voltage === "15000" ? "#78909c" : "#5b5b6b";
+            var vl = p.voltage ? (Number(p.voltage) / 1000).toFixed(0) + " kV" : "\uBBF8\uC0C1";
             new maplibregl.Popup({ className: "infra-popup", maxWidth: "260px" }).setLngLat(e.lngLat).setHTML(
-              '<div style="font-family:monospace;font-size:11px;color:#e0e0e0;line-height:1.6"><div style="font-size:13px;font-weight:700;color:#a855f7;margin-bottom:4px">' + (p.name || tl) + '</div>' + (p.voltage ? '<div><span style="color:#888">\uC804\uC555</span> <span style="color:#a855f7;font-weight:600">' + p.voltage + '</span></div>' : '') + '<div><span style="color:#888">\uC720\uD615</span> ' + tl + '</div></div>'
+              '<div style="font-family:monospace;font-size:11px;color:#e0e0e0;line-height:1.6"><div style="font-size:13px;font-weight:700;color:' + vc + ';margin-bottom:4px">' + (p.name || tl) + '</div><div><span style="color:#888">\uC804\uC555</span> <span style="color:' + vc + ';font-weight:600">' + vl + '</span></div><div><span style="color:#888">\uC720\uD615</span> ' + tl + '</div></div>'
             ).addTo(map);
+            return;
+          }
+
+          f = queryClick(pt, ["weather-station-layer"]);
+          if (f) { p = f.properties || {};
+            new maplibregl.Popup({ className: "infra-popup", maxWidth: "260px" }).setLngLat(e.lngLat).setHTML(
+              '<div style="font-family:monospace;font-size:11px;color:#e0e0e0;line-height:1.6"><div style="font-size:10px;color:#888;margin-bottom:2px">한국지역난방공사</div><div style="font-size:13px;font-weight:700;color:#00b8d9;margin-bottom:4px">' + (p.name || "지사") + '지사</div>' +
+              '<div><span style="color:#888">\uAE30\uC628</span> ' + (p.temperature != null ? Number(p.temperature).toFixed(1) + '\u00B0C' : '\u2014') + '</div>' +
+              '<div><span style="color:#888">\uC2B5\uB3C4</span> ' + (p.humidity != null ? Number(p.humidity).toFixed(0) + '%' : '\u2014') + '</div>' +
+              '<div><span style="color:#888">\uD48D\uC18D</span> ' + (p.wind_speed != null ? Number(p.wind_speed).toFixed(1) + ' m/s' : '\u2014') + '</div>' +
+              (p.address ? '<div style="margin-top:4px;color:#888;font-size:10px">' + p.address + '</div>' : '') + '</div>'
+            ).addTo(map);
+            if (p.name) {
+              useMapStore.getState().selectStation(Number(p.id), String(p.name));
+              useUiStore.getState().setPanelMode("detail");
+            }
             return;
           }
 
@@ -249,7 +299,7 @@ export function MapView() {
 
         // 커서
         map.on("mousemove", function (e) {
-          var ids = ["pv-markers", "generation-markers", "powerplant-layer", "substations-layer", "powerlines-layer", "cluster-circles"];
+          var ids = ["pv-markers", "generation-markers", "powerplant-layer", "substations-layer", "powerlines-layer", "weather-station-layer", "cluster-circles"];
           var ex = ids.filter(function (id) { return !!map.getLayer(id); });
           if (ex.length === 0) return;
           var bb: [maplibregl.PointLike, maplibregl.PointLike] = [[e.point.x - 5, e.point.y - 5], [e.point.x + 5, e.point.y + 5]];
@@ -279,6 +329,16 @@ export function MapView() {
         var src = map.getSource("generation-plants") as maplibregl.GeoJSONSource;
         if (src) src.setData(data);
       }).catch(function (err) { console.error("[MapView] generation FAIL:", err); });
+
+      fetchWeatherStations().then(function (res) {
+        var geojson = { type: "FeatureCollection", features: res.stations.map(function (s) {
+          return { type: "Feature", geometry: { type: "Point", coordinates: [s.lng, s.lat] },
+            properties: { id: s.id, name: s.name, address: s.address, station_type: s.station_type, temperature: s.temperature, humidity: s.humidity, wind_speed: s.wind_speed, wind_direction: s.wind_direction, latest_ts: s.latest_ts } };
+        }) };
+        var src = map.getSource("weather-stations") as maplibregl.GeoJSONSource;
+        if (src) src.setData(geojson as GeoJSON.GeoJSON);
+        console.log("[MapView] weather stations loaded:", res.stations.length);
+      }).catch(function (err) { console.error("[MapView] weather stations FAIL:", err); });
 
       fetch("/api/v1/map/clusters").then(function (r) { return r.json(); }).then(function (data) {
         var src = map.getSource("clusters") as maplibregl.GeoJSONSource;
@@ -395,6 +455,8 @@ export function MapView() {
     setVis("boundary-line", layers.boundary);
     setVis("generation-markers", layers.generation);
     setVis("generation-labels", layers.generation);
+    setVis("weather-station-layer", layers.weatherStation);
+    setVis("weather-station-labels", layers.weatherStation);
     setVis("landcover-fill", layers.landcover);
     setVis("landcover-outline", layers.landcover);
   }, [mapReady, layers]);
