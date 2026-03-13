@@ -1,0 +1,544 @@
+# PRD: Hybrid Spatial Reconstruction of PV Locations
+## AHP-Calibrated, Inventory-Constrained Grid Allocation System
+
+---
+
+## 1. 문서 목적
+
+본 문서는 **행정구역별 PV 총량 데이터와 일부 관측된 실제 PV 좌표를 이용해, 누락된 PV 위치를 격자 단위로 복원하는 연구/개발 프로젝트**의 요구사항을 정의한다.
+
+본 프로젝트는 단순한 “최적입지 추천”이 아니라, 다음을 목표로 한다.
+
+- 시군구별 공식 PV 총량을 보존
+- 실제 관측된 PV 공간 패턴을 반영
+- AHP 기반 적합도 정보를 prior로 활용
+- 격자 단위 확률모형을 통해 누락 위치를 재구성
+
+---
+
+## 2. 프로젝트 배경
+
+### 2.1 문제 상황
+- 국가/행정구역 수준의 PV 설치 총량은 확보 가능
+- 그러나 모든 PV의 정밀 좌표는 비공개이거나 일부만 관측 가능
+- 기존 AHP 연구는 “이론적으로 좋은 위치”를 제시하지만, 실제 설치 패턴까지 설명하지 못함
+- 기존 ML 연구는 “설치지 vs 비설치지” 분류에 강하지만, 공식 총량 제약을 직접 반영하지 못함
+
+### 2.2 핵심 문제 정의
+우리가 가진 정보는 다음과 같다.
+
+1. 시군구별 공식 PV 총량 \(N_r\)
+2. 일부 실제 PV 점자료
+3. GIS 기반 공간 공변량
+4. AHP 기반 적합도 정보(또는 재현 가능한 prior)
+
+따라서 각 시군구 \(r\) 에 대해 누락된 PV 수는:
+
+\[
+U_r = N_r - n_r^{obs}
+\]
+
+이며, 본 프로젝트의 핵심은 이 \(U_r\) 를 **시군구 내부의 격자들에 가장 현실적으로 배분하는 것**이다.
+
+---
+
+## 3. 프로젝트 목표
+
+### 3.1 최종 목표
+각 격자 \(g\) 에 대해 상대 강도 \(\lambda_g\) 를 추정하고, 이를 시군구 내부 확률로 정규화하여 누락된 PV를 배분한다.
+
+\[
+p_{rg} = \frac{\lambda_g}{\sum_{h\in G_r}\lambda_h}
+\]
+
+그 후,
+
+\[
+\hat m_{rg} = U_r p_{rg}
+\]
+
+최종 복원 결과는:
+
+\[
+\hat Z_g = y_g^{obs} + \hat m_{rg}
+\]
+
+이다.
+
+### 3.2 성공 조건
+- 시군구별 총량이 공식 집계와 정확히 일치해야 함
+- 관측된 실제 PV 패턴과 유사한 공간 분포를 보여야 함
+- AHP prior를 활용하되, 실제 데이터 기반 패턴도 반영해야 함
+- 추후 모델 교체/확장이 가능하도록 구조화되어야 함
+
+---
+
+## 4. 프로젝트 범위
+
+### 포함 범위
+- 시군구별 총량 데이터 정리
+- 실제 PV point layer 정리
+- 전국 격자 생성
+- GIS 변수 추출
+- AHP suitability layer 생성 및 calibration
+- 데이터 기반 모델 학습
+- 시군구 내부 allocation
+- 복원 결과 검증
+
+### 제외 범위
+- 개별 PV 발전량 예측
+- 시간대별 발전량 시뮬레이션
+- rooftop/utility-scale 설치 유형 세분화 (초기 버전)
+- 실시간 대시보드 구축
+- 전국 전력계통 최적화 모델링
+
+---
+
+## 5. 사용자/이해관계자
+
+### 직접 사용자
+- 연구자
+- 논문 작성자
+- 공간분석/에너지 데이터 분석 담당자
+
+### 활용 대상
+- 에너지 정책 연구
+- synthetic PV point dataset 구축
+- 계통 계획 및 시뮬레이션
+- DataOps 기반 spatial PV database 구축
+
+---
+
+## 6. 핵심 연구 질문
+
+1. 공식 PV 총량과 실제 관측 점자료를 결합해 누락된 위치를 복원할 수 있는가?
+2. AHP 기반 적합도는 실제 설치 위치와 어느 정도 일치하는가?
+3. AHP prior와 데이터 기반 모델을 결합하면 AHP 단독보다 나은가?
+4. 시군구 총량 제약 하에서 어떤 격자가 더 높은 설치 확률을 갖는가?
+5. 복원된 PV 분포가 실제 공간 군집성을 얼마나 잘 재현하는가?
+
+---
+
+## 7. 데이터 요구사항
+
+## 7.1 입력 데이터
+
+### A. 행정구역 총량 데이터
+- 시군구별 PV 총량
+- 필수 컬럼:
+  - `region_id`
+  - `region_name`
+  - `cnt`
+
+### B. 실제 PV point layer
+- 일부 실제 좌표가 있는 PV 점자료
+- 필수 요구사항:
+  - 좌표계 확인
+  - 중복 제거
+  - 시군구/격자 spatial join 가능
+
+### C. GIS 레이어
+필수 후보:
+- GHI
+- DEM
+- slope
+- aspect
+- elevation
+- land use / land cover
+- road network
+- powerline
+- substation
+- urban area
+- water body
+- protected area
+
+### D. AHP 참고자료
+- 국내 PV 최적입지 선정 논문
+- 변수 및 가중치 체계
+- 제약조건 정의
+
+---
+
+## 8. 분석 단위
+
+### 8.1 기본 단위
+- 전국 격자(grid)
+
+### 8.2 기본 해상도
+- 기본안: **500m × 500m**
+- 민감도 분석 후보: 250m, 1km
+
+### 8.3 격자별 필수 식별정보
+- `grid_id`
+- `region_id`
+- `cx`, `cy`
+- `grid_area_m2`
+
+---
+
+## 9. 데이터 테이블 설계
+
+## 9.1 region_summary_table
+시군구 단위 요약 테이블
+
+필수 컬럼:
+- `region_id`
+- `region_name`
+- `N_r`
+- `n_r_obs`
+- `U_r = N_r - n_r_obs`
+
+---
+
+## 9.2 grid_master_table
+모델 입력용 핵심 테이블
+
+### 식별/위치
+- `grid_id`
+- `region_id`
+- `cx`
+- `cy`
+- `grid_area_m2`
+
+### 타깃/관측값
+- `y_g_obs`
+- `has_obs_pv`
+
+### Hard mask
+- `M_hard`
+- `mask_water`
+- `mask_protected`
+- `mask_steep`
+- `mask_restricted_lulc`
+
+### AHP 컬럼
+- `ahp_score`
+- `ahp_class`
+- `ahp_softmask`
+
+### 물리/환경 변수
+- `ghi`
+- `slope`
+- `aspect`
+- `elevation`
+- `lulc_class`
+- `developable_ratio`
+
+### 거리형 변수
+- `dist_road`
+- `dist_powerline`
+- `dist_substation`
+- `dist_urban`
+
+### 로그 변환 거리형 변수
+- `log_dist_road`
+- `log_dist_powerline`
+- `log_dist_substation`
+
+### 주변 요약 변수
+- `road_density_1km`
+- `urban_ratio_1km`
+- `developable_ratio_1km`
+
+### 상호작용 변수
+- `ghi_x_developable`
+- `ghi_x_log_dist_substation`
+
+### 공간효과 대체 변수
+- `pv_kde_1km`
+- `neighbor_pv_count`
+- `neighbor_dev_ratio`
+
+---
+
+## 9.3 ahp_calibration_table
+AHP 등급-실제 점 일치도 테이블
+
+필수 컬럼:
+- `ahp_class`
+- `eligible_area_share`
+- `observed_pv_share`
+- `R_k`
+
+정의:
+
+\[
+R_k =
+\frac{\text{observed PV share in class }k}
+{\text{eligible area share in class }k}
+\]
+
+그리고:
+
+\[
+m_{c(g)} = R_{c(g)}
+\]
+
+---
+
+## 10. AHP 활용 전략
+
+본 프로젝트에서 AHP는 최종 예측모형의 주체가 아니라 **prior layer** 로 사용한다.
+
+### 10.1 역할 1: 변수 선정 근거
+국내 AHP 논문을 기반으로 주요 변수군을 정한다.
+
+### 10.2 역할 2: suitability prior 생성
+격자별 AHP 적합도 점수 생성:
+
+\[
+S_g^{AHP}
+\]
+
+### 10.3 역할 3: soft mask
+AHP 등급별 실제 PV 점 분포를 비교해 calibration factor 생성:
+
+\[
+m_{c(g)} = R_{c(g)}
+\]
+
+### 10.4 역할 4: hard mask 기준
+수면, 보호구역, 과도한 경사 등은 hard mask 생성 기준으로 사용한다.
+
+---
+
+## 11. 데이터 기반 모델링 전략
+
+## 11.1 핵심 타깃
+본 프로젝트의 데이터 기반 모델은 binary classification이 아니라,
+**격자별 상대 설치 강도 \(\lambda_g\)** 를 추정하는 것이다.
+
+즉, 학습 대상은 격자별 관측 PV count 또는 그에 대응하는 within-region relative preference이다.
+
+---
+
+## 11.2 메인 모델
+### Conditional Multinomial Allocation Model
+
+격자 score:
+
+\[
+s_g = \beta^\top x_g + \rho \log m_{c(g)} + w_g
+\]
+
+intensity:
+
+\[
+\lambda_g = M_g^{hard}\exp(s_g)
+\]
+
+시군구 내부 확률:
+
+\[
+p_{rg} = \frac{\lambda_g}{\sum_{h\in G_r}\lambda_h}
+\]
+
+이 구조를 메인 모델로 사용한다.
+
+---
+
+## 11.3 비교모형
+
+### A. AHP-only
+\[
+p_{rg}^{AHP}
+=
+\frac{M_g^{hard}m_{c(g)}}{\sum_{h\in G_r}M_h^{hard}m_{c(h)}}
+\]
+
+### B. ML-based predictor
+후보:
+- CatBoost
+- XGBoost
+
+형태:
+
+\[
+s_g^{ML} = f_\theta(x_g)
+\]
+
+\[
+\lambda_g = M_g^{hard}\cdot m_{c(g)}\cdot \exp(s_g^{ML})
+\]
+
+---
+
+## 12. 공간효과 \(w_g\) 전략
+
+\(w_g\) 는 설명되지 않는 잔여 공간 군집성을 나타낸다.
+
+### 옵션 1: 없음
+\[
+w_g = 0
+\]
+
+### 옵션 2: spatial-feature 대체
+- kernel-smoothed PV density
+- neighboring cell summary
+- local density proxy
+
+### 옵션 3: explicit spatial random effect
+- CAR
+- BYM2
+
+### 권장 순서
+1. baseline: \(w_g=0\)
+2. 실전형: spatial-feature 기반
+3. 확장형: CAR/BYM2
+
+---
+
+## 13. Allocation 로직
+
+각 시군구 \(r\) 에 대해
+
+\[
+U_r = N_r - n_r^{obs}
+\]
+
+를 계산하고, 이를 내부 격자에 배분한다.
+
+### 결정론적 배분
+\[
+\hat m_{rg} = U_r p_{rg}
+\]
+
+### 확률적 배분
+\[
+(m_{r1},\dots,m_{rK_r}) \sim \text{Multinomial}(U_r, p_r)
+\]
+
+최종 결과:
+
+\[
+\hat Z_g = y_g^{obs} + \hat m_{rg}
+\]
+
+---
+
+## 14. 검증 전략
+
+### 14.1 구조적 검증
+- 시군구 총량 보존 여부 확인
+- \( \sum_{g\in G_r} \hat Z_g = N_r \)
+
+### 14.2 위치 복원력 검증
+- hold-out observed points
+- top-q hit rate
+- rank-based evaluation
+
+### 14.3 공간 패턴 검증
+- Moran’s I
+- Ripley’s K
+- nearest-neighbor distance
+
+### 14.4 환경적 맥락 검증
+실제 PV와 복원 PV의 분포 비교:
+- slope
+- LULC
+- road distance
+- substation distance
+- urban distance
+
+### 14.5 AHP 검증
+- high suitability class에 실제 PV가 얼마나 집중되는지
+- enrichment ratio \(R_k\) 평가
+
+---
+
+## 15. 개발/분석 단계
+
+### Phase 1. 데이터 정합성 확인
+- 공식 총량과 point layer의 단위 일치 여부
+- 기준 시점 일치 여부
+- 좌표계 통일
+
+### Phase 2. 공간단위 구축
+- grid 생성
+- region-grid mapping
+- point-grid mapping
+
+### Phase 3. GIS feature 생성
+- 거리변수 계산
+- DEM/LULC/GHI 결합
+- 주변 요약 변수 생성
+
+### Phase 4. AHP prior 생성
+- 국내 논문 기반 변수/가중치 정리
+- suitability map 생성
+- class 분류
+- calibration factor 계산
+
+### Phase 5. 모델 적합
+- Conditional multinomial model
+- AHP-only baseline
+- XGBoost/CatBoost 비교모형
+
+### Phase 6. Allocation
+- \(U_r\) 계산
+- \(p_{rg}\) 계산
+- \(\hat m_{rg}\) 배분
+- \(\hat Z_g\) 생성
+
+### Phase 7. 검증
+- 공간유사성 검증
+- 환경분포 검증
+- 지역총량 보존 검증
+
+---
+
+## 16. 리스크 및 주의사항
+
+### 데이터 리스크
+- 공식 총량과 point layer의 단위 불일치
+- point layer의 표본 편향
+- 거리 계산용 GIS 레이어 부족
+
+### 모델 리스크
+- AHP와 원변수 중복 사용 시 해석 혼선
+- spatial leakage
+- 격자 해상도에 따른 민감도
+
+### 해석 리스크
+- “실제 설치된 위치 = 최적 위치”로 단순화하지 않기
+- AHP는 normative prior, point inventory는 empirical pattern으로 구분하기
+
+---
+
+## 17. 성공 기준
+
+본 프로젝트가 성공했다고 판단하기 위한 기준은 다음과 같다.
+
+1. 시군구별 공식 총량을 정확히 복원할 것
+2. 실제 관측 PV의 공간 패턴과 유사한 구조를 보일 것
+3. AHP-only 대비 data-driven 또는 hybrid model이 개선된 결과를 보일 것
+4. 격자 단위 마스터 테이블이 재사용 가능하게 구축될 것
+5. 논문화 가능한 수준의 방법론 일관성을 확보할 것
+
+---
+
+## 18. 최종 산출물
+
+### 필수 산출물
+- `region_summary_table`
+- `grid_master_table`
+- `ahp_calibration_table`
+- reconstructed grid-level PV dataset
+- 시군구별 allocation 결과 테이블
+- suitability / intensity / reconstructed map
+
+### 문서 산출물
+- Methods 설명 문서
+- 변수 정의 문서
+- AHP prior 구성 문서
+- 검증 결과 요약 문서
+
+---
+
+## 19. 한 줄 정의
+
+본 프로젝트는 다음과 같이 정의된다.
+
+> **AHP 기반 이론적 적합도와 실제 관측된 PV 점자료를 결합하여, 시군구별 공식 PV 총량 제약 하에서 누락된 PV 위치를 격자 단위로 복원하는 hybrid spatial allocation system**
+
+---

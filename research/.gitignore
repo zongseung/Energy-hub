@@ -1,0 +1,8 @@
+data/raw/
+data/processed/
+data/exports/
+*.parquet
+*.gpkg
+*.csv
+__pycache__/
+.ipynb_checkpoints/
