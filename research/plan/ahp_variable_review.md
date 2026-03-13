@@ -19,6 +19,16 @@
 | P8 | 박성훈 외 (2021) | 공간정보 기반 태양광 발전소 입지 적합성 분석 | 한국 전남 | 한국태양에너지학회논문집 |
 | P9 | Sindhu et al. (2017) | Investigation of feasibility study of solar farms — AHP | 인도 Haryana | Renewable & Sustainable Energy Reviews |
 | P10 | Tahri et al. (2015) | Evaluation of solar farm sites — AHP-GIS | 모로코 | Renewable & Sustainable Energy Reviews |
+| P11 | Prieto-Amparán et al. (2021) | Regional GIS-assisted multi-criteria site suitability for solar farms | 멕시코 Chihuahua | Land (MDPI) |
+| P12 | Noorollahi et al. (2022) | GIS-based site selection using Fuzzy-Boolean + AHP | 이란 Khuzestan | Renewable Energy |
+| P13 | Eroğlu (2021) | Multi-criteria PV site selection using GIS-Intuitionistic Fuzzy AHP | 터키 Erzurum | Scientific Reports |
+| P14 | Berger et al. (2021) | GIS-based site suitability for solar power in Mongolia | 몽골 전국 | Applied Sciences (MDPI) |
+| P15 | Islam et al. (2024) | Site suitability for solar power plants — GIS-AHP & MCDA | 방글라데시 전국 | Renewable Energy |
+| P16 | Ruiz et al. (2020) | GIS-AHP MCDA for optimal solar energy plant location | 인도네시아 West Kalimantan | Energy Reports |
+| P17 | Nebey (2020) | Site suitability analysis of solar PV power generation | 에티오피아 South Gondar | Journal of Energy (Wiley) |
+| P18 | Asare-Addo (2022) | Techno-economic potential and site evaluation for solar PV & CSP | 가나 전국 | Renewable Energy Focus |
+| P19 | Al-Sarihi & Al-Rashdi (2025) | Solar farms suitability using GIS-based AHP — Al Duqm | 오만 Al Duqm | Renewable Energy |
+| P20 | Olanrewaju et al. (2025) | Integrating GIS and AHP for PV farm site selection | 나이지리아 Lagos | Processes (MDPI) |
 
 ---
 
@@ -28,26 +38,31 @@
 
 | 변수 | 사용 논문 | 평균 가중치 | 비고 |
 |------|----------|------------|------|
-| **GHI / 일사량** | P1~P10 (전체) | 0.28~0.35 | 최고 가중치, 모든 논문 공통 |
-| 일조시간 | P4, P5, P7 | 0.10~0.15 | GHI와 중복 시 하나만 사용 |
-| 기온 | P1, P9 | 0.05~0.08 | 고온 시 패널 효율 감소 반영 |
+| **GHI / 일사량** | P1~P20 (전체) | 0.28~0.43 | 최고 가중치, 모든 논문 공통. 몽골(P14) 0.43 최고 |
+| 일조시간 | P4, P5, P7, P12 | 0.10~0.15 | GHI와 중복 시 하나만 사용 |
+| DNI (Direct Normal Irradiance) | P15 | — | GHI와 별도 사용 (CSP 병행 연구) |
+| 기온 | P1, P9, P12, P13, P19 | 0.05~0.08 | 고온 시 패널 효율 감소 반영 |
+| 풍속 | P12, P13, P19 | 0.03~0.06 | 냉각 효과 반영, 일부 연구에서 포함 |
+| 상대습도 | P12, P13, P15 | 0.03~0.05 | 패널 성능 영향, 부수적 기후변수 |
+| 지표면 온도 (LST) | P13 | — | 위성 기반 LST 활용 (Erzurum 연구) |
 
 ### 2.2 지형 변수
 
 | 변수 | 사용 논문 | 평균 가중치 | 비고 |
 |------|----------|------------|------|
-| **경사도 (slope)** | P1~P10 (전체) | 0.12~0.20 | 일반적으로 5° 이하 최적, 30° 이상 hard mask |
-| **향 (aspect)** | P1, P2, P3, P6, P8 | 0.05~0.10 | 남향 최적 (한국: 남~남동) |
-| 고도 (elevation) | P1, P4, P5, P9 | 0.05~0.08 | 고도 자체보다 경사·향이 더 중요 |
+| **경사도 (slope)** | P1~P20 (전체) | 0.10~0.20 | 5° 이하 최적, 30° 이상 hard mask. 몽골(P14) 0.12 |
+| **향 (aspect)** | P1, P2, P3, P6, P8, P13, P14, P19 | 0.05~0.11 | 남향 최적. 몽골(P14) 11% |
+| 고도 (elevation) | P1, P4, P5, P9, P14, P15, P19 | 0.05~0.08 | 고도 자체보다 경사·향이 더 중요 |
 
 ### 2.3 인프라 접근성 변수
 
 | 변수 | 사용 논문 | 평균 가중치 | 비고 |
 |------|----------|------------|------|
-| **송전선까지 거리** | P1~P10 (전체) | 0.10~0.18 | 연계비용 직결, 일관되게 고가중치 |
-| **변전소까지 거리** | P1, P2, P3, P6, P7, P8 | 0.08~0.15 | 송전선과 함께 or 대체 변수로 |
-| **도로까지 거리** | P1~P10 (전체) | 0.07~0.12 | 시공·유지보수 접근성 |
+| **송전선까지 거리** | P1~P20 대부분 | 0.09~0.18 | 연계비용 직결, 일관되게 고가중치. 몽골(P14) 12% |
+| **변전소까지 거리** | P1, P2, P3, P6, P7, P8, P12, P19 | 0.08~0.15 | 송전선과 함께 or 대체 변수로 |
+| **도로까지 거리** | P1~P20 대부분 | 0.07~0.12 | 시공·유지보수 접근성. 몽골(P14) 9% |
 | 배전선까지 거리 | P6, P8 | 0.05~0.08 | 소규모 PV에서 더 중요 |
+| 시가지·마을까지 거리 | P12, P16, P17, P19 | 0.04~0.07 | 이란(P12): 도시+마을 별도 변수로 분리 |
 
 ### 2.4 토지이용 변수
 
@@ -61,11 +76,21 @@
 
 | 변수 | 사용 논문 | 처리 방식 |
 |------|----------|----------|
-| **보호구역 (국립공원·생태보전지역)** | P1~P10 (전체) | Hard mask (100% 제외) |
-| **수계·습지** | P1~P10 (전체) | Hard mask |
+| **보호구역 (국립공원·생태보전지역)** | P1~P20 (전체) | Hard mask (100% 제외) |
+| **수계·습지** | P1~P20 (전체) | Hard mask |
 | 군사시설 인근 | P1, P6, P7 | Hard mask 또는 고거리 패널티 |
 | 문화재 보호구역 | P6, P7, P8 | Hard mask (한국 특이사항) |
 | 홍수위험지역 | P3, P4 | Hard mask 또는 soft penalty |
+| 산림 | P13, P16, P17, P20 | Hard mask 또는 soft penalty |
+| 인구밀집지역 | P16, P18, P20 | Hard mask (서아프리카·동남아 연구에서 강조) |
+
+### 2.6 사회·경제 변수 (신규 추가, 일부 연구)
+
+| 변수 | 사용 논문 | 처리 방식 | 비고 |
+|------|----------|----------|------|
+| 인구밀도 | P18, P20 | Soft score | 수요 접근성 반영 |
+| 학교·공공시설까지 거리 | P17 | Soft score | 에티오피아 연구 특이사항 |
+| 사회 수용성 (Social acceptance) | P20 | Soft score | 나이지리아 연구; 도시 인근 설치 저항 반영 |
 
 ---
 
@@ -126,16 +151,81 @@
 | 규제 | 수계 | Hard mask |
 | - | 합계 | ~0.913 |
 
+### P14 — Berger et al. (2021), Applied Sciences MDPI (몽골)
+
+> 동아시아·중앙아시아 맥락. **가중치 명시 논문 중 가장 상세한 편**.
+
+| 대분류 | 변수 | 가중치 |
+|-------|------|--------|
+| 기후 | GHI (연평균) | **0.430** |
+| 지형 | 경사도 | 0.120 |
+| 인프라 | 송전선 거리 | 0.120 |
+| 지형 | 향 (aspect) | 0.110 |
+| 인프라 | 도로 거리 | 0.090 |
+| 기후 | 연평균 기온 | ~0.070 |
+| 지형 | 고도 | ~0.060 |
+| - | **합계** | **1.000** |
+
+### P12 — Noorollahi et al. (2022), Renewable Energy (이란 Khuzestan)
+
+> Fuzzy-Boolean + AHP 2단계: Boolean으로 hard mask 먼저 제거 → AHP로 연속 점수 산출.
+
+| 대분류 | 변수 그룹 |
+|-------|---------|
+| 기후 | 일사량, 일조시간, 기온, 상대습도, 풍속 |
+| 경제·인프라 | 도로 거리, 송전선 거리, 변전소 거리, 도시 거리, 마을 거리 |
+| 지형 | 경사도, 향, 고도 |
+| 환경 | 토지이용 |
+
+- 총 14개 세부 변수 (4개 그룹)
+- 적합 비율: 최적 0.12%, 적합 25.66%, 부적합 59.46%
+
+### P13 — Eroğlu (2021), Scientific Reports (터키 Erzurum)
+
+> Intuitionistic Fuzzy AHP (IFS-AHP) 적용 — 전문가 불확실성 반영.
+
+| 대분류 | 변수 |
+|-------|------|
+| 지형 | 경사도, 향 |
+| 기후 | 일사량, 풍속, 기온, 기압, 습도, **지표면 온도(LST)** |
+| 인프라 | 송전선 거리 |
+| 토지 | 토지이용 |
+
+- 총 10개 변수. LST (Land Surface Temperature)는 위성 기반 특이변수.
+
+### P15 — Islam et al. (2024), Renewable Energy (방글라데시)
+
+| 대분류 | 변수 |
+|-------|------|
+| 기후 | **GHI + DNI (별도)**, 강우량, 상대습도 |
+| 지형 | 경사도, 고도 |
+| 인프라 | 주요 도로 거리 |
+| 토지 | LULC |
+| 규제 | 보호구역 거리 |
+
+- GHI와 DNI를 동시 사용 — CSP 병행 연구에서 유효한 접근.
+- 농지·built-up 전체를 hard mask 처리 (식량 안보 우선 정책 반영).
+
+### P19 — Al-Sarihi & Al-Rashdi (2025), Renewable Energy (오만 Al Duqm)
+
+> 최신 논문. 전문가 기관 컨설팅 기반 AHP (에너지부, APSR 등 참여).
+
+| 대분류 | 변수 (총 12개) |
+|-------|------|
+| 지형 | 경사도, 고도, 향 |
+| 기후 | 일사량, 풍속, 기온 |
+| 인프라·사회 | 도로 거리, 발전소/변전소 거리 + 사회경제 6개 변수 |
+
 ---
 
 ## 4. 변수 우선순위 종합
 
-### 전 논문 공통 변수 (사용률 90%+) → **반드시 포함**
+### 전 논문 공통 변수 (사용률 90%+, P1~P20 기준) → **반드시 포함**
 
 ```
-1. GHI / 일사량          (가중치 0.28~0.35)
-2. 경사도 (slope)         (가중치 0.12~0.20)
-3. 송전선까지 거리        (가중치 0.10~0.18)
+1. GHI / 일사량          (가중치 0.28~0.43, 중앙값 ~0.32)
+2. 경사도 (slope)         (가중치 0.10~0.20)
+3. 송전선까지 거리        (가중치 0.09~0.18)
 4. 도로까지 거리          (가중치 0.07~0.12)
 5. 토지피복 (LULC)        (가중치 0.08~0.15)
 6. 보호구역              → Hard mask
@@ -146,17 +236,29 @@
 
 ```
 8. 변전소까지 거리        (가중치 0.08~0.15)
-9. 향 (aspect)           (가중치 0.05~0.10)
+9. 향 (aspect)           (가중치 0.05~0.11)
 10. 고도 (elevation)      (가중치 0.05~0.08)
 11. 시가지까지 거리       (가중치 0.04~0.07)
+12. 기온                 (가중치 0.05~0.08)
 ```
 
 ### 한국 특화 변수 → **국내 논문 기반 추가**
 
 ```
-12. 문화재 보호구역       → Hard mask
-13. 군사시설 인근        → Hard mask or soft
-14. 배전선 거리          → 소규모 PV 시 중요
+13. 문화재 보호구역       → Hard mask
+14. 군사시설 인근        → Hard mask or soft
+15. 배전선 거리          → 소규모 PV 시 중요
+```
+
+### 신규 확인 변수 (P11~P20 추가 발견) → **본 연구에서 선택적 검토**
+
+```
+16. DNI (직달일사)        → GHI와 병행 가능, CSP 연구에서 유효
+17. 풍속                 → 냉각 효과 반영, 부수적 기후변수 (낮은 가중치)
+18. 상대습도             → 패널 성능 영향, 선택적 포함
+19. 지표면 온도 (LST)     → 위성 기반, 기온 대체 가능
+20. 산림 (forest)        → Hard mask 또는 강한 soft penalty
+21. 인구밀도             → 수요측 변수 (본 연구는 공급측 집중으로 우선순위 낮음)
 ```
 
 ---
@@ -191,4 +293,17 @@
 
 ---
 
-*작성일: 2026-03-13 | 기반 논문: 국내외 10편*
+## 7. 방법론적 패턴 정리 (P1~P20 통합 관찰)
+
+| 패턴 | 내용 |
+|------|------|
+| **2단계 접근법** | Fuzzy-Boolean hard mask → AHP soft score (P12, P18) |
+| **일사량 가중치 범위** | 9~43%; 동아시아·건조기후 지역일수록 상향 (P14: 43%) |
+| **전문가 CR 기준** | 모든 논문 CR < 0.10 보고 — 본 연구 AHP 설계 시 동일 기준 적용 |
+| **Fuzzy AHP 확장** | 전문가 불확실성 반영 (P13); 단, 본 연구는 calibration 방식으로 보완 가능 |
+| **사회·경제 변수** | 개도국 연구에서 주로 등장; 한국 맥락에서는 문화재·군사 hard mask로 대체 가능 |
+| **농지 처리 차이** | 방글라데시(P15)는 농지 전체 hard mask — 한국은 soft score로 처리하는 것이 현실적 |
+
+---
+
+*작성일: 2026-03-13 (최초) / 2026-03-13 (보강: P11~P20 추가) | 기반 논문: 국내외 20편*
