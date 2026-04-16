@@ -1,6 +1,7 @@
 import { useUiStore } from "../../stores/uiStore";
 
 type LayerKey = keyof ReturnType<typeof useUiStore>["layers"];
+type RoadTypeKey = keyof ReturnType<typeof useUiStore>["roadTypes"];
 
 const LAYER_ITEMS: { key: LayerKey; label: string; color: string }[] = [
   { key: "pvActive", label: "가동", color: "bg-accent-green" },
@@ -8,36 +9,76 @@ const LAYER_ITEMS: { key: LayerKey; label: string; color: string }[] = [
   { key: "pvRetired", label: "폐기", color: "bg-accent-red" },
   { key: "substation", label: "변전소", color: "bg-accent-amber" },
   { key: "powerline", label: "송전선", color: "bg-accent-purple" },
+  { key: "road", label: "도로", color: "bg-text-secondary" },
   { key: "powerplant", label: "발전소", color: "bg-accent-red" },
   { key: "weatherStation", label: "난방지사", color: "bg-accent-cyan" },
   { key: "boundary", label: "경계", color: "bg-accent-cyan" },
   { key: "generation", label: "발전량", color: "bg-accent-amber" },
+  { key: "evCharger", label: "충전소", color: "bg-accent-blue" },
   { key: "landcover", label: "피복", color: "bg-accent-green" },
   { key: "terrain3d", label: "3D", color: "bg-accent-blue" },
 ];
 
+const ROAD_TYPES: { key: RoadTypeKey; label: string; color: string }[] = [
+  { key: "motorway", label: "고속", color: "#e57373" },
+  { key: "trunk", label: "국도", color: "#ffb74d" },
+  { key: "primary", label: "지방", color: "#fff176" },
+  { key: "secondary", label: "2차", color: "#81d4fa" },
+  { key: "tertiary", label: "3차", color: "#80cbc4" },
+  { key: "residential", label: "주거", color: "#ce93d8" },
+];
+
 export function LayerToggle() {
-  const { layers, toggleLayer } = useUiStore();
+  const { layers, toggleLayer, roadTypes, toggleRoadType } = useUiStore();
 
   return (
-    <div className="flex items-center gap-0.5">
-      {LAYER_ITEMS.map(({ key, label, color }) => {
-        const on = layers[key];
-        return (
-          <button
-            key={key}
-            onClick={() => toggleLayer(key)}
-            className={`flex items-center gap-1 px-1.5 py-0.5 text-2xs font-mono rounded transition-all ${
-              on
-                ? "bg-hb-border/60 text-text-primary"
-                : "text-text-muted hover:text-text-secondary"
-            }`}
-          >
-            <span className={`w-1 h-1 rounded-full ${on ? color : "bg-text-muted/30"}`} />
-            {label}
-          </button>
-        );
-      })}
+    <div className="flex flex-col gap-0.5">
+      <div className="flex items-center gap-0.5 flex-wrap">
+        {LAYER_ITEMS.map(({ key, label, color }) => {
+          const on = layers[key];
+          return (
+            <button
+              key={key}
+              onClick={() => toggleLayer(key)}
+              className={`flex items-center gap-1 px-1.5 py-0.5 text-2xs font-mono rounded transition-all ${
+                on
+                  ? "bg-hb-border/60 text-text-primary"
+                  : "text-text-muted hover:text-text-secondary"
+              }`}
+            >
+              <span className={`w-1 h-1 rounded-full ${on ? color : "bg-text-muted/30"}`} />
+              {label}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* 도로 등급별 서브 토글 */}
+      {layers.road && (
+        <div className="flex items-center gap-0.5 ml-2">
+          <span className="text-2xs text-text-muted font-mono mr-0.5">┗</span>
+          {ROAD_TYPES.map(({ key, label, color }) => {
+            const on = roadTypes[key];
+            return (
+              <button
+                key={key}
+                onClick={() => toggleRoadType(key)}
+                className={`flex items-center gap-1 px-1 py-0.5 text-2xs font-mono rounded transition-all ${
+                  on
+                    ? "bg-hb-border/60 text-text-primary"
+                    : "text-text-muted hover:text-text-secondary"
+                }`}
+              >
+                <span
+                  className="w-1.5 h-0.5 rounded-full"
+                  style={{ backgroundColor: on ? color : "#3a3a4a" }}
+                />
+                {label}
+              </button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

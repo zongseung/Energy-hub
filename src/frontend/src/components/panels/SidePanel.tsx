@@ -6,8 +6,8 @@ import { SearchPanel } from "./SearchPanel";
 
 export function SidePanel() {
   const { panelMode, setPanelMode } = useUiStore();
-  const { selectedId, selectedGenPlant } = useMapStore();
-  const hasSelection = !!selectedId || !!selectedGenPlant;
+  const { selectedId, selectedGenPlant, selectedEvCharger } = useMapStore();
+  const hasSelection = !!selectedId || !!selectedGenPlant || !!selectedEvCharger;
 
   return (
     <div className="w-[360px] shrink-0 flex flex-col bg-hb-surface border-l border-hb-border overflow-hidden">

@@ -5,20 +5,21 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Hyperbeat Trader exact palette
+        // Theme-varying colors (CSS variables as RGB triplets for Tailwind opacity support)
         hb: {
-          bg: "#0b0b0e",
-          surface: "#111116",
-          panel: "#16161d",
-          border: "#1e1e28",
-          "border-light": "#2a2a38",
+          bg: "rgb(var(--hb-bg) / <alpha-value>)",
+          surface: "rgb(var(--hb-surface) / <alpha-value>)",
+          panel: "rgb(var(--hb-panel) / <alpha-value>)",
+          border: "rgb(var(--hb-border) / <alpha-value>)",
+          "border-light": "rgb(var(--hb-border-light) / <alpha-value>)",
         },
         text: {
-          primary: "#ffffff",
-          secondary: "#8b8b9b",
-          muted: "#5b5b6b",
-          label: "#6e6e7e",
+          primary: "rgb(var(--text-primary) / <alpha-value>)",
+          secondary: "rgb(var(--text-secondary) / <alpha-value>)",
+          muted: "rgb(var(--text-muted) / <alpha-value>)",
+          label: "rgb(var(--text-label) / <alpha-value>)",
         },
+        // Accent colors stay hardcoded (same in both themes, Tailwind opacity modifiers work)
         accent: {
           green: "#0ecb81",
           red: "#f6465d",

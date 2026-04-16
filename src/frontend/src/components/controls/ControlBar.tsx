@@ -17,7 +17,7 @@ export function ControlBar() {
   const { variable, setVariable } = useMapStore();
 
   return (
-    <div className="h-8 flex items-center gap-2 px-3 bg-hb-surface border-b border-hb-border shrink-0">
+    <div className="min-h-8 flex items-center gap-2 px-3 py-1 bg-hb-surface border-b border-hb-border shrink-0">
       <span className="hb-label mr-1">VARIABLE</span>
       <VariableSelect
         variables={VARIABLES}

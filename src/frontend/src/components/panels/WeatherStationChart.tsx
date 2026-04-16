@@ -186,13 +186,13 @@ export default function WeatherStationChart({ stationName }: { stationName: stri
             <LineChart data={chartData}>
               <XAxis
                 dataKey="ts"
-                tick={{ fontSize: 9, fill: "#5b5b6b", fontFamily: "IBM Plex Mono" }}
-                axisLine={{ stroke: "#1e1e28" }}
+                tick={{ fontSize: 9, fill: "rgb(var(--text-muted))", fontFamily: "IBM Plex Mono" }}
+                axisLine={{ stroke: "rgb(var(--hb-border))" }}
                 tickLine={false}
                 interval="preserveStartEnd"
               />
               <YAxis
-                tick={{ fontSize: 9, fill: "#5b5b6b", fontFamily: "IBM Plex Mono" }}
+                tick={{ fontSize: 9, fill: "rgb(var(--text-muted))", fontFamily: "IBM Plex Mono" }}
                 axisLine={false}
                 tickLine={false}
                 width={40}
@@ -200,12 +200,12 @@ export default function WeatherStationChart({ stationName }: { stationName: stri
               />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: "#16161d",
-                  border: "1px solid #1e1e28",
+                  backgroundColor: "rgb(var(--hb-panel))",
+                  border: "1px solid rgb(var(--hb-border))",
                   borderRadius: 4,
                   fontSize: 10,
                   fontFamily: "IBM Plex Mono",
-                  color: "#ffffff",
+                  color: "rgb(var(--text-primary))",
                 }}
                 formatter={(v: number) => [
                   `${v?.toFixed(1) ?? "—"}${meta.unit}`,
@@ -218,7 +218,7 @@ export default function WeatherStationChart({ stationName }: { stationName: stri
                 stroke={meta.color}
                 strokeWidth={1.5}
                 dot={false}
-                activeDot={{ r: 3, fill: meta.color, stroke: "#0b0b0e", strokeWidth: 2 }}
+                activeDot={{ r: 3, fill: meta.color, stroke: "rgb(var(--hb-bg))", strokeWidth: 2 }}
               />
             </LineChart>
           </ResponsiveContainer>

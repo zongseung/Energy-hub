@@ -94,8 +94,10 @@ export interface SearchResultItem {
   lat: number;
   lng: number;
   score: number;
-  result_type?: "pv" | "generation";
+  result_type?: "pv" | "generation" | "ev_charger";
   gen_source?: "nambu" | "namdong";
+  ev_stat_id?: string;
+  ev_chger_id?: string;
 }
 
 export interface SearchResponse {
@@ -160,4 +162,45 @@ export interface GenerationSummary {
   namdong_latest_total_mw: number | null;
   nambu_latest_ts?: string;
   namdong_latest_ts?: string;
+}
+
+export interface EvChargerDetail {
+  statnm: string;
+  statid: string;
+  chgerid: string;
+  chgertype: string;
+  chgertype_label: string | null;
+  addr: string | null;
+  addrdetail: string | null;
+  location: string | null;
+  usetime: string | null;
+  businm: string | null;
+  busicall: string | null;
+  stat: string;
+  stat_label: string | null;
+  method: string | null;
+  powertype: string | null;
+  kind: string | null;
+  kinddetail: string | null;
+  parkingfree: string | null;
+  maker: string | null;
+  lat: number;
+  lng: number;
+  output: number | null;
+  year: number | null;
+  lasttsdt: string | null;
+  lasttedt: string | null;
+  nowtsdt: string | null;
+  statupddt: string | null;
+  collected_at: string | null;
+}
+
+export interface EvChargerHistoryItem {
+  stat: string;
+  stat_label: string | null;
+  statupddt: string | null;
+  lasttsdt: string | null;
+  lasttedt: string | null;
+  nowtsdt: string | null;
+  collected_at: string;
 }

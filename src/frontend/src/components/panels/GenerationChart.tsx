@@ -103,13 +103,13 @@ export default function GenerationChart({ source, plantName }: Props) {
               </defs>
               <XAxis
                 dataKey="ts"
-                tick={{ fontSize: 8, fill: "#5b5b6b", fontFamily: "IBM Plex Mono" }}
-                axisLine={{ stroke: "#1e1e28" }}
+                tick={{ fontSize: 8, fill: "rgb(var(--text-muted))", fontFamily: "IBM Plex Mono" }}
+                axisLine={{ stroke: "rgb(var(--hb-border))" }}
                 tickLine={false}
                 interval="preserveStartEnd"
               />
               <YAxis
-                tick={{ fontSize: 8, fill: "#5b5b6b", fontFamily: "IBM Plex Mono" }}
+                tick={{ fontSize: 8, fill: "rgb(var(--text-muted))", fontFamily: "IBM Plex Mono" }}
                 axisLine={false}
                 tickLine={false}
                 width={40}
@@ -118,12 +118,12 @@ export default function GenerationChart({ source, plantName }: Props) {
               />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: "#16161d",
-                  border: "1px solid #1e1e28",
+                  backgroundColor: "rgb(var(--hb-panel))",
+                  border: "1px solid rgb(var(--hb-border))",
                   borderRadius: 4,
                   fontSize: 10,
                   fontFamily: "IBM Plex Mono",
-                  color: "#ffffff",
+                  color: "rgb(var(--text-primary))",
                 }}
                 formatter={(value: number) => [`${value?.toFixed(1) ?? "—"} kW`, "Generation"]}
               />
@@ -134,7 +134,7 @@ export default function GenerationChart({ source, plantName }: Props) {
                 strokeWidth={1.5}
                 fill="url(#genGrad)"
                 dot={false}
-                activeDot={{ r: 3, fill: chartColor, stroke: "#0b0b0e", strokeWidth: 2 }}
+                activeDot={{ r: 3, fill: chartColor, stroke: "rgb(var(--hb-bg))", strokeWidth: 2 }}
               />
             </AreaChart>
           </ResponsiveContainer>

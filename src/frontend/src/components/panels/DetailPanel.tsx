@@ -2,14 +2,20 @@ import { useEffect, useState, lazy, Suspense } from "react";
 import { useMapStore } from "../../stores/mapStore";
 import { fetchSiteDetail } from "../../api/siteApi";
 import { fetchWeatherStations } from "../../api/statsApi";
-import type { SiteDetail, WeatherStation } from "../../api/types";
+import { fetchEvChargerDetail, fetchEvChargerHistory } from "../../api/evChargerApi";
+import type { SiteDetail, WeatherStation, EvChargerDetail, EvChargerHistoryItem } from "../../api/types";
 
 const MiniTimeseries = lazy(() => import("./MiniTimeseries"));
 const GenerationChart = lazy(() => import("./GenerationChart"));
 const WeatherStationChart = lazy(() => import("./WeatherStationChart"));
 
 export function DetailPanel() {
-  const { selectedId, selectedType, selectedGenPlant, selectedStationName } = useMapStore();
+  const { selectedId, selectedType, selectedGenPlant, selectedStationName, selectedEvCharger } = useMapStore();
+
+  // EV Charger detail
+  if (selectedType === "evCharger" && selectedEvCharger) {
+    return <EvChargerDetailView statId={selectedEvCharger.statId} chgerId={selectedEvCharger.chgerId} />;
+  }
 
   // Weather station detail
   if (selectedType === "station" && selectedStationName) {
@@ -239,6 +245,139 @@ function WeatherStationDetailView({ stationName }: { stationName: string }) {
           <WeatherStationChart stationName={stationName} />
         </Suspense>
       </div>
+    </div>
+  );
+}
+
+const STAT_BADGE: Record<string, { cls: string; color: string }> = {
+  "1": { cls: "badge-retired", color: "text-accent-red" },
+  "2": { cls: "badge-active", color: "text-accent-green" },
+  "3": { cls: "badge-active", color: "text-accent-blue" },
+  "4": { cls: "badge-stopped", color: "text-text-muted" },
+  "5": { cls: "badge-stopped", color: "text-accent-amber" },
+  "9": { cls: "badge-stopped", color: "text-text-muted" },
+};
+
+function formatKoreanDt(dt: string | null): string {
+  if (!dt) return "—";
+  try {
+    return new Date(dt).toLocaleString("ko-KR", {
+      month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit", second: "2-digit",
+      hour12: false,
+    });
+  } catch { return dt; }
+}
+
+function EvChargerDetailView({ statId, chgerId }: { statId: string; chgerId: string }) {
+  const [charger, setCharger] = useState<EvChargerDetail | null>(null);
+  const [history, setHistory] = useState<EvChargerHistoryItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setCharger(null);
+    setHistory([]);
+    setError(null);
+    setLoading(true);
+
+    Promise.all([
+      fetchEvChargerDetail(statId, chgerId),
+      fetchEvChargerHistory(statId, chgerId).catch(() => ({ history: [] })),
+    ])
+      .then(([detail, hist]) => {
+        setCharger(detail);
+        setHistory((hist as { history: EvChargerHistoryItem[] }).history || []);
+      })
+      .catch((err) => {
+        console.error("Failed to fetch EV charger detail:", err);
+        setError(err.message || "API 호출 실패");
+      })
+      .finally(() => setLoading(false));
+  }, [statId, chgerId]);
+
+  if (loading) {
+    return <div className="p-3 text-text-muted text-2xs font-mono">LOADING...</div>;
+  }
+  if (error) {
+    return <div className="p-3 text-accent-red text-2xs font-mono">ERROR: {error}</div>;
+  }
+  if (!charger) {
+    return <div className="p-3 text-text-muted text-2xs">데이터를 불러올 수 없습니다</div>;
+  }
+
+  const statCode = String(charger.stat || "9");
+  const badge = STAT_BADGE[statCode] || STAT_BADGE["9"];
+
+  return (
+    <div className="flex flex-col">
+      {/* Header */}
+      <div className="px-3 py-2 border-b border-hb-border">
+        <div className="flex items-center gap-2 mb-1">
+          <span className={`text-xs font-semibold ${badge.color} truncate`}>
+            {charger.statnm || "충전소"}
+          </span>
+          <span className={badge.cls}>{charger.stat_label || "상태미확인"}</span>
+        </div>
+        <div className="text-2xs text-text-muted font-mono">
+          EV CHARGER · {charger.statid}-{charger.chgerid}
+          {charger.lat && charger.lng && ` · ${charger.lat.toFixed(5)}, ${charger.lng.toFixed(5)}`}
+        </div>
+      </div>
+
+      {/* Properties */}
+      <div className="px-3 py-2 border-b border-hb-border">
+        <div className="hb-label mb-1">PROPERTIES</div>
+        <PropRow label="충전타입" value={charger.chgertype_label || charger.chgertype || "—"} />
+        <PropRow label="출력" value={charger.output != null ? `${charger.output} kW` : "—"} />
+        <PropRow label="사업자" value={charger.businm || "—"} />
+        <PropRow label="연락처" value={charger.busicall || "—"} />
+        <PropRow label="제조사" value={charger.maker || "—"} />
+        <PropRow label="주차무료" value={charger.parkingfree === "Y" ? "무료" : charger.parkingfree === "N" ? "유료" : "—"} />
+        <PropRow label="이용시간" value={charger.usetime || "—"} />
+        <PropRow label="설치연도" value={charger.year ? String(charger.year) : "—"} />
+      </div>
+
+      {/* Charging session */}
+      <div className="px-3 py-2 border-b border-hb-border">
+        <div className="hb-label mb-1">CHARGING SESSION</div>
+        <PropRow label="마지막 충전시작" value={formatKoreanDt(charger.lasttsdt)} />
+        <PropRow label="마지막 충전종료" value={formatKoreanDt(charger.lasttedt)} />
+        <PropRow label="현재 충전시작" value={formatKoreanDt(charger.nowtsdt)} />
+        <PropRow label="상태 업데이트" value={formatKoreanDt(charger.statupddt)} />
+      </div>
+
+      {/* Address */}
+      <div className="px-3 py-2 border-b border-hb-border">
+        <div className="hb-label mb-1">ADDRESS</div>
+        <div className="text-2xs text-text-secondary leading-relaxed">
+          {charger.addr && <div>{charger.addr}</div>}
+          {charger.addrdetail && charger.addrdetail !== "null" && (
+            <div className="text-text-muted">{charger.addrdetail}</div>
+          )}
+          {charger.location && charger.location !== "null" && (
+            <div className="text-text-muted">{charger.location}</div>
+          )}
+        </div>
+      </div>
+
+      {/* Status history */}
+      {history.length > 0 && (
+        <div className="px-3 py-2">
+          <div className="hb-label mb-1">STATUS HISTORY</div>
+          <div className="space-y-0.5 max-h-[200px] overflow-y-auto">
+            {history.map((h, i) => {
+              const hBadge = STAT_BADGE[String(h.stat)] || STAT_BADGE["9"];
+              return (
+                <div key={i} className="hb-row text-2xs font-mono py-0.5">
+                  <span className={`w-16 ${hBadge.color}`}>{h.stat_label}</span>
+                  <span className="flex-1 text-right text-text-muted">{formatKoreanDt(h.collected_at)}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

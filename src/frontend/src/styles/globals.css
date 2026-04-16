@@ -3,19 +3,44 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    /* Light mode — values are R G B triplets for Tailwind opacity support */
+    --hb-bg: 245 245 247;
+    --hb-surface: 255 255 255;
+    --hb-panel: 240 240 242;
+    --hb-border: 224 224 229;
+    --hb-border-light: 208 208 216;
+    --text-primary: 26 26 46;
+    --text-secondary: 107 107 123;
+    --text-muted: 155 155 171;
+    --text-label: 126 126 142;
+  }
+
+  .dark {
+    --hb-bg: 11 11 14;
+    --hb-surface: 17 17 22;
+    --hb-panel: 22 22 29;
+    --hb-border: 30 30 40;
+    --hb-border-light: 42 42 56;
+    --text-primary: 255 255 255;
+    --text-secondary: 139 139 155;
+    --text-muted: 91 91 107;
+    --text-label: 110 110 126;
+  }
+
   * {
     scrollbar-width: thin;
-    scrollbar-color: #1e1e28 #0b0b0e;
+    scrollbar-color: rgb(var(--hb-border)) rgb(var(--hb-bg));
   }
   ::-webkit-scrollbar {
     width: 5px;
     height: 5px;
   }
   ::-webkit-scrollbar-track {
-    background: #0b0b0e;
+    background: rgb(var(--hb-bg));
   }
   ::-webkit-scrollbar-thumb {
-    background: #2a2a38;
+    background: rgb(var(--hb-border-light));
     border-radius: 2px;
   }
 }
@@ -82,24 +107,31 @@
   }
 }
 
-/* MapLibre 인프라 팝업 (dark theme) */
+/* MapLibre 인프라 팝업 (theme-aware) */
 .infra-popup .maplibregl-popup-content {
-  background: #16161d;
-  border: 1px solid #1e1e28;
+  background: rgb(var(--hb-panel));
+  border: 1px solid rgb(var(--hb-border));
   border-radius: 6px;
   padding: 10px 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+  color: rgb(var(--text-primary));
+}
+.infra-popup .maplibregl-popup-content .popup-label {
+  color: rgb(var(--text-muted));
+}
+.infra-popup .maplibregl-popup-content .popup-sub {
+  color: rgb(var(--text-secondary));
 }
 .infra-popup .maplibregl-popup-tip {
-  border-top-color: #16161d;
-  border-bottom-color: #16161d;
+  border-top-color: rgb(var(--hb-panel));
+  border-bottom-color: rgb(var(--hb-panel));
 }
 .infra-popup .maplibregl-popup-close-button {
-  color: #888;
+  color: rgb(var(--text-muted));
   font-size: 16px;
   padding: 2px 6px;
 }
 .infra-popup .maplibregl-popup-close-button:hover {
-  color: #e0e0e0;
+  color: rgb(var(--text-primary));
   background: transparent;
 }

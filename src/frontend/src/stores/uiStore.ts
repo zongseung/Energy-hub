@@ -1,5 +1,14 @@
 import { create } from "zustand";
 
+interface RoadTypes {
+  motorway: boolean;
+  trunk: boolean;
+  primary: boolean;
+  secondary: boolean;
+  tertiary: boolean;
+  residential: boolean;
+}
+
 interface Layers {
   pvActive: boolean;
   pvStopped: boolean;
@@ -11,24 +20,30 @@ interface Layers {
   weatherStation: boolean;
   choropleth: boolean;
   generation: boolean;
+  road: boolean;
   landcover: boolean;
   terrain3d: boolean;
+  evCharger: boolean;
 }
 
 interface UiState {
   panelMode: "search" | "detail" | "dashboard";
   dbError: boolean;
   layers: Layers;
+  roadTypes: RoadTypes;
   autoRefresh: boolean;
   autoRefreshInterval: number;
   plantTypeFilter: Set<string>;
+  theme: "dark" | "light";
 
   setPanelMode: (m: "search" | "detail" | "dashboard") => void;
   setDbError: (e: boolean) => void;
   toggleLayer: (key: keyof Layers) => void;
+  toggleRoadType: (key: keyof RoadTypes) => void;
   setAutoRefresh: (on: boolean) => void;
   togglePlantType: (source: string) => void;
   resetPlantTypeFilter: () => void;
+  toggleTheme: () => void;
 }
 
 export const useUiStore = create<UiState>((set) => ({
@@ -45,17 +60,30 @@ export const useUiStore = create<UiState>((set) => ({
     weatherStation: false,
     choropleth: false,
     generation: true,
+    road: false,
     landcover: false,
-    terrain3d: true,
+    terrain3d: false,
+    evCharger: false,
+  },
+  roadTypes: {
+    motorway: true,
+    trunk: true,
+    primary: true,
+    secondary: true,
+    tertiary: false,
+    residential: false,
   },
   autoRefresh: true,
   autoRefreshInterval: 300_000,
   plantTypeFilter: new Set<string>(),
+  theme: (localStorage.getItem("theme") as "dark" | "light") || "dark",
 
   setPanelMode: (m) => set({ panelMode: m }),
   setDbError: (e) => set({ dbError: e }),
   toggleLayer: (key) =>
     set((s) => ({ layers: { ...s.layers, [key]: !s.layers[key] } })),
+  toggleRoadType: (key) =>
+    set((s) => ({ roadTypes: { ...s.roadTypes, [key]: !s.roadTypes[key] } })),
   setAutoRefresh: (on) => set({ autoRefresh: on }),
   togglePlantType: (source) =>
     set((s) => {
@@ -65,4 +93,15 @@ export const useUiStore = create<UiState>((set) => ({
       return { plantTypeFilter: next };
     }),
   resetPlantTypeFilter: () => set({ plantTypeFilter: new Set<string>() }),
+  toggleTheme: () =>
+    set((s) => {
+      const next = s.theme === "dark" ? "light" : "dark";
+      if (next === "dark") {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+      localStorage.setItem("theme", next);
+      return { theme: next };
+    }),
 }));

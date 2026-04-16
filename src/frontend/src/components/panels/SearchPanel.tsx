@@ -10,7 +10,7 @@ const PAGE_SIZE = 50;
 export function SearchPanel() {
   const { query, setQuery, filters, setFilters, results, total, setResults, appendResults, loading, setLoading } =
     useSearchStore();
-  const { selectSite, selectGenPlant } = useMapStore();
+  const { selectSite, selectGenPlant, selectEvCharger } = useMapStore();
   const { setPanelMode } = useUiStore();
   const [localQuery, setLocalQuery] = useState(query);
 
@@ -47,7 +47,9 @@ export function SearchPanel() {
   );
 
   const handleSelect = (r: import("../../api/types").SearchResultItem) => {
-    if (r.result_type === "generation" && r.gen_source && r.name) {
+    if (r.result_type === "ev_charger" && r.ev_stat_id) {
+      selectEvCharger(r.ev_stat_id, r.ev_chger_id ?? "");
+    } else if (r.result_type === "generation" && r.gen_source && r.name) {
       selectGenPlant(r.gen_source, r.name);
     } else {
       selectSite(r.id, "pv");
@@ -138,7 +140,7 @@ export function SearchPanel() {
           <>
             {results.map((r, idx) => (
               <div
-                key={r.result_type === "generation" ? `gen-${r.name}-${idx}` : r.id}
+                key={r.result_type === "generation" ? `gen-${r.name}-${idx}` : r.result_type === "ev_charger" ? `ev-${r.ev_stat_id}-${idx}` : r.id}
                 onClick={() => handleSelect(r)}
                 className="hb-row text-2xs font-mono group"
               >
@@ -148,6 +150,11 @@ export function SearchPanel() {
                     {r.result_type === "generation" && (
                       <span className="px-1 py-px text-[8px] rounded bg-accent-amber/20 text-accent-amber shrink-0">
                         {r.gen_source === "nambu" ? "남부" : "남동"}
+                      </span>
+                    )}
+                    {r.result_type === "ev_charger" && (
+                      <span className="px-1 py-px text-[8px] rounded bg-accent-blue/20 text-accent-blue shrink-0">
+                        EV
                       </span>
                     )}
                     <span className="text-text-primary truncate">{r.name ?? "—"}</span>
@@ -165,11 +172,13 @@ export function SearchPanel() {
                   className={`w-14 text-right ${
                     r.result_type === "generation"
                       ? "text-accent-amber"
-                      : r.status === "정상가동"
-                        ? "text-accent-green"
-                        : r.status === "폐기"
-                          ? "text-accent-red"
-                          : "text-text-muted"
+                      : r.result_type === "ev_charger"
+                        ? "text-accent-blue"
+                        : r.status === "정상가동"
+                          ? "text-accent-green"
+                          : r.status === "폐기"
+                            ? "text-accent-red"
+                            : "text-text-muted"
                   }`}
                 >
                   {r.result_type === "generation" ? "발전" : r.status}

@@ -1,7 +1,5 @@
 import { Component, type ReactNode } from "react";
 import { MapView } from "./MapView";
-import { PlantLegend } from "../controls/PlantLegend";
-import { useUiStore } from "../../stores/uiStore";
 
 interface ErrorState {
   hasError: boolean;
@@ -35,18 +33,11 @@ class MapErrorBoundary extends Component<{ children: ReactNode }, ErrorState> {
 }
 
 export function MapContainer() {
-  const powerplantOn = useUiStore((s) => s.layers.powerplant);
-
   return (
     <div className="w-full h-full relative">
       <MapErrorBoundary>
         <MapView />
       </MapErrorBoundary>
-      {powerplantOn && (
-        <div className="absolute bottom-8 left-2 z-10">
-          <PlantLegend />
-        </div>
-      )}
     </div>
   );
 }
