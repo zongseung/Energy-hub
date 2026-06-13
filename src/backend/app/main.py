@@ -27,8 +27,10 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="Energy Hub Dashboard API",
     version="1.0.0",
-    docs_url="/docs",
-    redoc_url="/redoc",
+    # 외부 공개 대비: 문서/스키마 기본 비활성 (ENABLE_DOCS=1 일 때만 노출 — RE 방지)
+    docs_url="/docs" if settings.enable_docs else None,
+    redoc_url="/redoc" if settings.enable_docs else None,
+    openapi_url="/openapi.json" if settings.enable_docs else None,
     lifespan=lifespan,
 )
 

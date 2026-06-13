@@ -5,6 +5,7 @@ import { FilterPanel } from "../components/datacenter/FilterPanel";
 import { PreviewTable } from "../components/datacenter/PreviewTable";
 import { ExportBar } from "../components/datacenter/ExportBar";
 import { WeatherForecastBrowser } from "../components/datacenter/WeatherForecastBrowser";
+import { DemandChart } from "../components/datacenter/DemandChart";
 import { useDataCenterStore } from "../stores/datacenterStore";
 
 /**
@@ -20,8 +21,9 @@ export default function DataCenterPage() {
     void loadCatalog();
   }, [loadCatalog]);
 
-  // 단기예보(파일 소스)는 전용 NAS 브라우저로 분기 — 그 외는 기존 mock 흐름
+  // 데이터셋별 전용 뷰 분기 — 그 외는 기존 mock(필터/미리보기/내보내기) 흐름
   const isWeather = selectedId === "weather_forecast";
+  const isDemand = selectedId === "demand";
 
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-hb-bg">
@@ -37,6 +39,8 @@ export default function DataCenterPage() {
         <div className="flex-1 flex flex-col gap-3 p-3 overflow-hidden">
           {isWeather ? (
             <WeatherForecastBrowser />
+          ) : isDemand ? (
+            <DemandChart />
           ) : (
             <>
               <div className="flex gap-3 shrink-0">

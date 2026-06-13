@@ -106,12 +106,12 @@ const MOCK_CATALOG: DatasetMeta[] = [
   {
     id: "demand",
     label: "전력수요",
-    description: "지역별 5분 전력수요 (FDW)",
+    description: "제주 + 육지(전국) 5분 전력수요 — 실시간 그래프",
     source: "table",
     geometry: null,
     rowCount: 1304051,
-    formats: ["csv"],
-    filters: [{ key: "period", label: "기간", type: "daterange" }],
+    formats: [],
+    filters: [],
   },
   {
     id: "weather_forecast",

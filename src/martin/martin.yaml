@@ -1,8 +1,13 @@
-# Martin vector tile server configuration
+# Martin vector tile server configuration (martin 1.x)
 listen_addresses: '0.0.0.0:3000'
 
 postgres:
-  connection_string: postgresql://energy_user:energy_hub_secure_2026@energy-hub-db:5432/energy_hub
+  # 보안: DB 접속정보 env 분리 (평문 비밀번호 소스 미포함). docker-compose 가 ${MARTIN_DATABASE_URL} 주입.
+  connection_string: ${MARTIN_DATABASE_URL}
+
+  # 보안 하드닝: public 스키마만 발행 → tiger.*(인덱스 없어 startup hang 유발),
+  #   research.*(KEPCO 역추정 연구데이터) 를 디스커버리에서 제외.
+  #   외부 노출은 nginx 에서 7개 레이어만 추가 allowlist (그 외 /tiles/* 404).
   auto_publish:
-    tables:
-      from: public
+    from_schemas:
+      - public

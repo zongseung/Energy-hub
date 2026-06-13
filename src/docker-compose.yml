@@ -9,7 +9,8 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
-      - "5437:5432"
+      # 보안: DB 포트는 로컬(호스트)에서만 접근 — 외부 네트워크 직접 Postgres 접속 차단
+      - "127.0.0.1:5437:5432"
     volumes:
       - /mnt/iscsi-renewable/postgres/energy-hub-data:/var/lib/postgresql/data
     healthcheck:
@@ -72,12 +73,17 @@ services:
 
   # ── Martin 벡터타일 서버 ───────────────────────────────
   martin:
-    image: maplibre/martin:latest
+    # martin 1.10.1 (digest 핀) — v0.8.0 은 tiger 스키마 bounds 계산에서 startup hang +
+    # 스키마 제외 불가. 1.x 는 hang 없고 auto_publish.from_schemas 로 public 만 발행.
+    image: ghcr.io/maplibre/martin@sha256:808afb520272ebf37ea582b0191bd7a2d87c3cf89a552000883bfbdbced9688c
     container_name: energy-hub-martin
     restart: unless-stopped
     depends_on:
       energy-hub-db:
         condition: service_healthy
+    environment:
+      # 보안: 평문 비밀번호를 추적 파일에 두지 않고 untracked .env 로 주입 (martin 이 ${MARTIN_DATABASE_URL} 치환)
+      MARTIN_DATABASE_URL: ${MARTIN_DATABASE_URL:?MARTIN_DATABASE_URL must be set in .env}
     volumes:
       - ./martin/martin.yaml:/config/martin.yaml:ro
     command: ["--config", "/config/martin.yaml"]
