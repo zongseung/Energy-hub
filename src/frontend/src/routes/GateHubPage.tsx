@@ -2,6 +2,8 @@ import { Suspense, lazy, useState } from "react";
 import { TelemetryBar } from "../components/gate/TelemetryBar";
 import { GatePanel } from "../components/gate/GatePanel";
 import { GateSeam } from "../components/gate/GateSeam";
+// 모듈 import — 컨테이너에 src 만 마운트돼 있어 public 대신 src/assets 로 번들/서빙
+import dataCenterImg from "../assets/datacenter.png";
 
 // 무거운 maplibre 는 게이트 진입을 막지 않도록 lazy 로드 (별도 청크)
 const MapPreview = lazy(() => import("../components/gate/MapPreview"));
@@ -51,7 +53,7 @@ export default function GateHubPage() {
           ariaLabel="마이크로 데이터센터로 이동 — 데이터 다운로드"
           backdrop={
             <img
-              src="/gate/datacenter.jpg"
+              src={dataCenterImg}
               alt=""
               aria-hidden
               loading="lazy"

@@ -27,6 +27,8 @@ class Settings(BaseSettings):
 
     # Data paths
     boundaries_path: str = "/data/boundaries/sigungu_2018_simple.geojson"
+    # 기상청 단기예보 NAS (컨테이너 내 read-only 마운트 경로)
+    weather_nas_path: str = "/nas-weather-data"
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 
