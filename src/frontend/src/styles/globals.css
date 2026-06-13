@@ -135,3 +135,61 @@
   color: rgb(var(--text-primary));
   background: transparent;
 }
+
+/* ════════════════════════════════════════════════════════════════
+   GATE HUB / DATA CENTER — "미션컨트롤 분기 게이트" (data_center 트랙)
+   기존 Hyperbeat 토큰만 사용. 신규 폰트·색 없음.
+   ════════════════════════════════════════════════════════════════ */
+
+/* 그리드 라인 배경 + 비네트 (관제실 톤) */
+.gate-bg {
+  position: relative;
+  background-color: rgb(var(--hb-bg));
+  background-image:
+    linear-gradient(rgb(var(--hb-border) / 0.5) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(var(--hb-border) / 0.5) 1px, transparent 1px);
+  background-size: 44px 44px;
+}
+.gate-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(125% 85% at 50% 42%, transparent 52%, rgb(var(--hb-bg)) 100%);
+}
+
+/* 패널 staggered 진입 */
+@keyframes gate-reveal {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.gate-reveal { opacity: 0; animation: gate-reveal 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) forwards; }
+
+/* 중앙 seam: 위→아래로 그어지고, 스캔라인이 흐른다 */
+@keyframes gate-seam-draw { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@keyframes gate-scan { 0% { top: -25%; } 100% { top: 125%; } }
+.gate-seam {
+  position: relative;
+  width: 1px;
+  background: rgb(var(--hb-border-light));
+  transform-origin: top;
+  animation: gate-seam-draw 0.45s ease forwards;
+  overflow: hidden;
+}
+.gate-seam::after {
+  content: "";
+  position: absolute;
+  left: -1px; right: -1px;
+  height: 24%;
+  background: linear-gradient(to bottom, transparent, rgb(var(--gate-glow, 255 255 255) / 0.75), transparent);
+  animation: gate-scan 3.4s linear infinite;
+  transition: background 0.3s ease;
+}
+
+/* 코너 브래킷 (currentColor 상속 → 패널 hover 시 점등) */
+.gate-corner { position: absolute; width: 13px; height: 13px; transition: opacity 0.25s ease, border-color 0.25s ease; }
+
+@media (prefers-reduced-motion: reduce) {
+  .gate-reveal, .gate-seam { animation: none; opacity: 1; transform: none; }
+  .gate-seam::after { display: none; }
+}

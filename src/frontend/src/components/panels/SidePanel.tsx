@@ -3,14 +3,16 @@ import { useMapStore } from "../../stores/mapStore";
 import { DashboardPanel } from "./DashboardPanel";
 import { DetailPanel } from "./DetailPanel";
 import { SearchPanel } from "./SearchPanel";
+import { TwinEntryCard } from "../twin/TwinEntryCard";
 
 export function SidePanel() {
   const { panelMode, setPanelMode } = useUiStore();
-  const { selectedId, selectedGenPlant, selectedEvCharger } = useMapStore();
-  const hasSelection = !!selectedId || !!selectedGenPlant || !!selectedEvCharger;
+  const { selectedId, selectedGenPlant, selectedEvCharger, selectedStationName } = useMapStore();
+  const hasSelection = !!selectedId || !!selectedGenPlant || !!selectedEvCharger || !!selectedStationName;
 
   return (
     <div className="w-[360px] shrink-0 flex flex-col bg-hb-surface border-l border-hb-border overflow-hidden">
+      <TwinEntryCard />
       {/* Hyperbeat ORDER BOOK / TRADES tab style */}
       <div className="flex border-b border-hb-border shrink-0">
         <TabButton
